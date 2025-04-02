@@ -115,7 +115,7 @@ blocks:
       5910000000.0, 5920000000.0]'
     orient: Qt.QVBoxLayout
     type: real
-    value: '5890000000'
+    value: 2.484e9
     widget: combo_box
   states:
     bus_sink: false
@@ -136,7 +136,7 @@ blocks:
     start: '0'
     step: '0.01'
     stop: '1'
-    value: '0.75'
+    value: '0.1'
     widget: counter_slider
   states:
     bus_sink: false
@@ -196,7 +196,7 @@ blocks:
     options: '[5e6, 10e6, 20e6]'
     orient: Qt.QVBoxLayout
     type: real
-    value: 10e6
+    value: 20e6
     widget: combo_box
   states:
     bus_sink: false
@@ -508,7 +508,7 @@ blocks:
     alias: ''
     comment: ''
     debug: 'True'
-    log: 'False'
+    log: 'True'
     maxoutbuf: '0'
     minoutbuf: '0'
   states:
@@ -758,7 +758,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1164, 520]
+    coordinate: [1164.0, 536]
     rotation: 270
     state: enabled
 - name: uhd_usrp_source_0
@@ -936,7 +936,7 @@ blocks:
     dc_offs_enb7: default
     dc_offs_enb8: default
     dc_offs_enb9: default
-    dev_addr: ''
+    dev_addr: '"addr=192.168.10.2"'
     dev_args: '""'
     gain0: gain
     gain1: '0'
@@ -1180,7 +1180,7 @@ blocks:
     start_time: '-1.0'
     stream_args: ''
     stream_chans: '[]'
-    sync: sync
+    sync: pc_clock
     time_source0: ''
     time_source1: ''
     time_source2: ''
@@ -1228,4 +1228,3 @@ connections:
 
 metadata:
   file_format: 1
-  grc_version: v3.10.2.0-68-g62a7e451
