@@ -39,7 +39,8 @@ public:
           d_debug(debug),
           d_ofdm(BPSK_1_2),
           d_frame(d_ofdm, 0),
-          d_frame_complete(true)
+          d_frame_complete(true),
+          d_pkt_num_from_up(0)
     {
         message_port_register_out(pmt::mp("out"));
     }
@@ -70,6 +71,7 @@ public:
                          << std::endl;
                     dout << "Already copied " << copied << " out of " << d_frame.n_sym
                          << " symbols of last frame" << std::endl;
+                    //d_logger->info("NEW FRAME ARRIVED WHEN PROCC {}", d_pkt_num_from_up);
                 }
                 d_frame_complete = false;
 
@@ -82,6 +84,9 @@ public:
                     d_meta, pmt::mp("frame bytes"), pmt::from_uint64(MAX_PSDU_SIZE + 1)));
                 int encoding = pmt::to_uint64(
                     pmt::dict_ref(d_meta, pmt::mp("encoding"), pmt::from_uint64(0)));
+                d_pkt_num_from_up = pmt::to_uint64(pmt::dict_ref(d_meta, pmt::mp("pkt num"), pmt::from_uint64(0)));
+                
+
 
                 ofdm_param ofdm = ofdm_param((Encoding)encoding);
                 frame_param frame = frame_param(ofdm, len_data);
@@ -94,6 +99,7 @@ public:
                     dout << "Decode MAC: frame start -- len " << len_data << "  symbols "
                          << frame.n_sym << "  encoding " << encoding << std::endl;
                 } else {
+                    //d_logger->info("DROPPING {} TOO LARGE", d_pkt_num_from_up);
                     dout << "Dropping frame which is too large (symbols or bits)"
                          << std::endl;
                 }
@@ -107,6 +113,7 @@ public:
 
                 if (copied == d_frame.n_sym) {
                     dout << "received complete frame - decoding" << std::endl;
+                    //d_logger->info("Decoding {}", d_pkt_num_from_up);
                     decode();
                     in += 48;
                     i++;
@@ -142,7 +149,8 @@ public:
         boost::crc_32_type result;
         result.process_bytes(out_bytes + 2, d_frame.psdu_size);
         if (result.checksum() != 558161692) {
-            dout << "checksum wrong -- dropping" << std::endl;
+            dout << "checksum wrong -- dropping " << d_pkt_num_from_up <<std::endl;
+            //d_logger->info("checksum_dropp {}", d_pkt_num_from_up);
             return;
         }
 
@@ -157,6 +165,8 @@ public:
             pmt::dict_add(d_meta, pmt::mp("dlt"), pmt::from_long(LINKTYPE_IEEE802_11));
 
         message_port_pub(pmt::mp("out"), pmt::cons(d_meta, blob));
+        d_logger->info("{} PASSED ALL TEST", d_pkt_num_from_up);
+        // ALSOsend message than PKT PASSED ALL TEST -> HERE SAVING CAN OCCURR
     }
 
     void deinterleave()
@@ -250,6 +260,7 @@ private:
 
     int copied;
     bool d_frame_complete;
+    uint64_t d_pkt_num_from_up;
 };
 
 decode_mac::sptr decode_mac::make(bool log, bool debug)

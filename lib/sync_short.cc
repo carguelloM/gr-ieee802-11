@@ -33,7 +33,7 @@ public:
         : block("sync_short",
                 gr::io_signature::make3(
                     3, 3, sizeof(gr_complex), sizeof(gr_complex), sizeof(float)),
-                gr::io_signature::make(1, 1, sizeof(gr_complex))),
+                gr::io_signature::make2(2, 2, sizeof(gr_complex), sizeof(gr_complex))),
           d_log(log),
           d_debug(debug),
           d_state(SEARCH),
@@ -41,7 +41,8 @@ public:
           d_freq_offset(0),
           d_copied(0),
           MIN_PLATEAU(min_plateau),
-          d_threshold(threshold)
+          d_threshold(threshold),
+          d_pkt(0)
     {
 
         set_tag_propagation_policy(block::TPP_DONT);
@@ -57,6 +58,7 @@ public:
         const gr_complex* in_abs = (const gr_complex*)input_items[1];
         const float* in_cor = (const float*)input_items[2];
         gr_complex* out = (gr_complex*)output_items[0];
+        gr_complex* out_raw = (gr_complex*)output_items[1];
 
         int noutput = noutput_items;
         int ninput =
@@ -71,17 +73,23 @@ public:
             int i;
 
             for (i = 0; i < ninput; i++) {
+                
                 if (in_cor[i] > d_threshold) {
                     if (d_plateau < MIN_PLATEAU) {
                         d_plateau++;
 
                     } else {
+                       
                         d_state = COPY;
                         d_copied = 0;
                         d_freq_offset = arg(in_abs[i]) / 16;
+                       
                         d_plateau = 0;
                         insert_tag(nitems_written(0), d_freq_offset, nitems_read(0) + i);
                         dout << "SHORT Frame!" << std::endl;
+                        i = i-30;
+                        // double val = (d_freq_offset)*(20e6/(2*3.1416));
+                        // d_logger->info("{}:{}", i, val);
                         break;
                     }
                 } else {
@@ -108,6 +116,7 @@ public:
                         d_freq_offset = arg(in_abs[o]) / 16;
                         insert_tag(
                             nitems_written(0) + o, d_freq_offset, nitems_read(0) + o);
+                        
                         dout << "SHORT Frame!" << std::endl;
                         break;
                     }
@@ -117,6 +126,7 @@ public:
                 }
 
                 out[o] = in[o] * exp(gr_complex(0, -d_freq_offset * d_copied));
+                out_raw[o] = in[o];
                 o++;
                 d_copied++;
             }
@@ -142,8 +152,11 @@ public:
 
         const pmt::pmt_t key = pmt::string_to_symbol("wifi_start");
         const pmt::pmt_t value = pmt::from_double(freq_offset);
-        const pmt::pmt_t srcid = pmt::string_to_symbol(name());
+        const pmt::pmt_t srcid = pmt::from_uint64(d_pkt);
+        // d_logger->info("PKT {} in short", d_pkt);
+        d_pkt++;
         add_item_tag(0, item, key, value, srcid);
+        add_item_tag(1, item, key, value, srcid);
     }
 
 private:
@@ -155,6 +168,7 @@ private:
     const bool d_log;
     const bool d_debug;
     const unsigned int MIN_PLATEAU;
+    uint64_t d_pkt;
 };
 
 sync_short::sptr

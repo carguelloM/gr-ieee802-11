@@ -43,6 +43,7 @@ public:
             boost::bind(&parse_mac_impl::parse, this, boost::placeholders::_1));
 
         message_port_register_out(pmt::mp("out"));
+        message_port_register_out(pmt::mp("check"));
     }
 
     ~parse_mac_impl() {}
@@ -52,13 +53,22 @@ public:
 
         if (pmt::is_eof_object(pdu)) {
             detail().get()->set_done(true);
+            d_logger->info("eof_obj");
             return;
         } else if (pmt::is_symbol(pdu)) {
+            d_logger->info("symb");
             return;
         }
 
         d_meta = pmt::car(pdu);
         d_msg = pmt::cdr(pdu);
+
+        uint64_t d_pkt_num_from_up = pmt::to_uint64(pmt::dict_ref(d_meta, pmt::mp("pkt num"), pmt::from_uint64(0)));
+        // d_logger->info("LAST {}", d_pkt_num_from_up);
+        message_port_pub(pmt::mp("check"), pmt::from_uint64(d_pkt_num_from_up));
+    
+
+        // A PACKET HERE IS PRETTY MUCH GUARATEED TO BE OK! OVER THE WIRE ONLY THE ONES WE CARE ARE HERE
 
         int frame_len = pmt::blob_length(d_msg);
         mac_header* h = (mac_header*)pmt::blob_data(d_msg);

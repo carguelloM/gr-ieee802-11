@@ -43,6 +43,12 @@ outputs:
 -   domain: stream
     dtype: complex
     multiplicity: '1'
+    label: out
+-   domain: stream
+    dtype: complex
+    multiplicity: '1'
+    label: out_raw
+
 asserts:
 - ${ threshold > 0 }
 - ${ min_plateau > 0 }

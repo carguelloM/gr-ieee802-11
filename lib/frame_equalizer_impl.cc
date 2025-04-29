@@ -48,10 +48,12 @@ frame_equalizer_impl::frame_equalizer_impl(
       d_bw(bw),
       d_frame_bytes(0),
       d_frame_symbols(0),
-      d_freq_offset_from_synclong(0.0)
+      d_freq_offset_from_synclong(0.0),
+      d_pkt_num_from_long(0)
 {
 
     message_port_register_out(pmt::mp("symbols"));
+    message_port_register_out(pmt::mp("check"));
 
     d_bpsk = constellation_bpsk::make();
     d_qpsk = constellation_qpsk::make();
@@ -146,7 +148,8 @@ int frame_equalizer_impl::general_work(int noutput_items,
                 pmt::to_double(tags.front().value) * d_bw / (2 * M_PI);
             d_epsilon0 = pmt::to_double(tags.front().value) * d_bw / (2 * M_PI * d_freq);
             d_er = 0;
-
+            d_pkt_num_from_long = pmt::to_uint64(tags.front().srcid);
+            
             dout << "epsilon: " << d_epsilon0 << std::endl;
         }
 
@@ -234,6 +237,8 @@ int frame_equalizer_impl::general_work(int noutput_items,
                 std::vector<gr_complex> csi = d_equalizer->get_csi();
                 dict = pmt::dict_add(
                     dict, pmt::mp("csi"), pmt::init_c32vector(csi.size(), csi));
+                
+                dict = pmt::dict_add(dict, pmt::mp("pkt num"), pmt::from_uint64(d_pkt_num_from_long));
 
                 pmt::pmt_t pairs = pmt::dict_items(dict);
                 for (int i = 0; i < pmt::length(pairs); i++) {
@@ -243,7 +248,9 @@ int frame_equalizer_impl::general_work(int noutput_items,
                                  pmt::car(pair),
                                  pmt::cdr(pair),
                                  alias_pmt());
+                    
                 }
+                message_port_pub(pmt::mp("check"), pmt::from_uint64(d_pkt_num_from_long));
             }
         }
 
@@ -298,6 +305,7 @@ bool frame_equalizer_impl::parse_signal(uint8_t* decoded_bits)
         if (decoded_bits[i] && (i > 4) && (i < 17)) {
             d_frame_bytes = d_frame_bytes | (1 << (i - 5));
         }
+       
     }
 
     if (parity != decoded_bits[17]) {

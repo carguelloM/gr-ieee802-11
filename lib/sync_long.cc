@@ -47,11 +47,14 @@ public:
           d_debug(debug),
           d_offset(0),
           d_state(SYNC),
-          SYNC_LENGTH(sync_length)
+          SYNC_LENGTH(sync_length), 
+          d_pkt_num_from_short(0)
     {
 
         set_tag_propagation_policy(block::TPP_DONT);
         d_correlation = (gr_complex*)volk_malloc(sizeof(gr_complex) * 8192, volk_get_alignment());
+        message_port_register_out(pmt::mp("sync_long_check"));
+        
     }
 
     ~sync_long_impl() {
@@ -63,17 +66,19 @@ public:
                      gr_vector_const_void_star& input_items,
                      gr_vector_void_star& output_items)
     {
-
+        
         const gr_complex* in = (const gr_complex*)input_items[0];
         const gr_complex* in_delayed = (const gr_complex*)input_items[1];
         gr_complex* out = (gr_complex*)output_items[0];
 
+      
         dout << "LONG ninput[0] " << ninput_items[0] << "   ninput[1] " << ninput_items[1]
              << "  noutput " << noutput << "   state " << d_state << std::endl;
 
         int ninput = std::min(std::min(ninput_items[0], ninput_items[1]), 8192);
 
         const uint64_t nread = nitems_read(0);
+
         get_tags_in_range(d_tags, 0, nread, nread + ninput);
         if (d_tags.size()) {
             std::sort(d_tags.begin(), d_tags.end(), gr::tag_t::offset_compare);
@@ -90,6 +95,15 @@ public:
                     d_state = RESET;
                 }
                 d_freq_offset_short = pmt::to_double(d_tags.front().value);
+                d_pkt_num_from_short = pmt::to_uint64(d_tags.front().srcid);
+                // d_logger->info("Tags@@ {} ", d_tags.size());
+                // if(d_tags.size() > 1)
+                // {
+                 
+                //     uint64_t off2 = d_tags[1].offset;
+                //     d_logger->info("OFF 2ND TAG {} ", off2-nread);
+                // }
+                // d_logger->info("JUST GOT: {}", d_pkt_num_from_short);
             }
         }
 
@@ -100,10 +114,14 @@ public:
         switch (d_state) {
 
         case SYNC:
+            // this happens sometimes when tags are closed together
+            if(ninput == 63){i = 63; d_offset=0;}
+
             d_fir.filterN(
                 d_correlation, in, std::min(SYNC_LENGTH, std::max(ninput - 63, 0)));
-
+            
             while (i + 63 < ninput) {
+                
 
                 d_cor.push_back(pair<gr_complex, int>(d_correlation[i], d_offset));
 
@@ -112,15 +130,19 @@ public:
 
                 if (d_offset == SYNC_LENGTH) {
                     search_frame_start();
+                    if(d_frame_start == 320)
+                    {
+                        d_offset = 0;
+                        break;
+                    }
                     mylog("LONG: frame start at {}",d_frame_start);
                     d_offset = 0;
                     d_count = 0;
                     d_state = COPY;
-
                     break;
                 }
             }
-
+          
             break;
 
         case COPY:
@@ -129,11 +151,14 @@ public:
                 int rel = d_offset - d_frame_start;
 
                 if (!rel) {
+               
                     add_item_tag(0,
                                  nitems_written(0),
                                  pmt::string_to_symbol("wifi_start"),
                                  pmt::from_double(d_freq_offset_short - d_freq_offset),
-                                 pmt::string_to_symbol(name()));
+                                 pmt::from_uint64(d_pkt_num_from_short));
+                message_port_pub(pmt::mp("sync_long_check"), pmt::from_uint64(d_pkt_num_from_short));
+                //d_logger->info("Pkt {} in long", d_pkt_num_from_short);
                 }
 
                 if (rel >= 0 && (rel < 128 || ((rel - 128) % 80) > 15)) {
@@ -164,7 +189,6 @@ public:
         }
 
         dout << "produced : " << o << " consumed: " << i << std::endl;
-
         d_count += o;
         consume(0, i);
         consume(1, i);
@@ -177,8 +201,8 @@ public:
         // in sync state we need at least a symbol to correlate
         // with the pattern
         if (d_state == SYNC) {
-            ninput_items_required[0] = 64;
-            ninput_items_required[1] = 64;
+            ninput_items_required[0] = 128;
+            ninput_items_required[1] = 128;
 
         } else {
             ninput_items_required[0] = noutput_items;
@@ -236,6 +260,7 @@ private:
     int d_frame_start;
     float d_freq_offset;
     double d_freq_offset_short;
+    uint64_t d_pkt_num_from_short; 
 
     gr_complex* d_correlation;
     list<pair<gr_complex, int>> d_cor;

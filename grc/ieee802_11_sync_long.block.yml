@@ -35,6 +35,9 @@ outputs:
 -   domain: stream
     dtype: complex
     multiplicity: '1'
+-   domain: message
+    id: sync_long_check 
+    optional: true
 asserts:
 - ${ sync_length > 0 }
 
