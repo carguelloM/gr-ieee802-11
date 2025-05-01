@@ -18,6 +18,7 @@
 #include "base.h"
 #include <cstring>
 #include <iostream>
+#include <algorithm>   
 
 using namespace gr::ieee802_11::equalizer;
 
@@ -47,4 +48,12 @@ std::vector<gr_complex> base::get_csi()
         csi.push_back(d_H[i]);
     }
     return csi;
+}
+
+void base::set_ltf(const gr_complex * newLTF)
+{
+     std::copy_n(newLTF, 64, LONG_FREQ.begin());   // LTF is std::array<gr_complex,64>
+     for (int i = 0; i < 12; ++i)
+        std::cout << "(" << newLTF[i].real() << "," << newLTF[i].imag() << ") ";
+    std::cout << std::endl;
 }

@@ -55,6 +55,18 @@ frame_equalizer_impl::frame_equalizer_impl(
     message_port_register_out(pmt::mp("symbols"));
     message_port_register_out(pmt::mp("check"));
 
+    message_port_register_in(pmt::mp("ltf_fw"));
+    // set_msg_handler(
+    //         pmt::mp("ltf_fw"),
+    //         boost::bind(&frame_equalizer_impl::check_msg, this, boost::placeholders::_1));
+    set_msg_handler(pmt::mp("ltf_fw"),
+        [this](pmt::pmt_t msg){
+            std::cout << "MESSAGE RX" << std::endl;
+            size_t len = pmt::length(msg);
+            const gr_complex *data = pmt::c32vector_elements(msg, len);
+            d_equalizer->set_ltf(data);
+        });
+
     d_bpsk = constellation_bpsk::make();
     d_qpsk = constellation_qpsk::make();
     d_16qam = constellation_16qam::make();
@@ -68,6 +80,9 @@ frame_equalizer_impl::frame_equalizer_impl(
 
 frame_equalizer_impl::~frame_equalizer_impl() {}
 
+void frame_equalizer_impl::check_msg(pmt::pmt_t msg){
+    std::cout << "MESSAGE RX" << std::endl;
+}
 
 void frame_equalizer_impl::set_algorithm(Equalizer algo)
 {

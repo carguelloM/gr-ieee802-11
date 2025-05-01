@@ -38,6 +38,9 @@ outputs:
 -   domain: message
     id: sync_long_check 
     optional: true
+-   domain: message
+    id: ltf_fw
+    optional: true
 asserts:
 - ${ sync_length > 0 }
 

@@ -37,6 +37,7 @@ public:
 
 private:
     double d_snr;
+   
 };
 
 } // namespace equalizer

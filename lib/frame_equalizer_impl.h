@@ -35,8 +35,7 @@ public:
 
     void set_algorithm(Equalizer algo);
     void set_bandwidth(double bw);
-    void set_frequency(double freq);
-
+    void set_frequency(double freq);    
     void forecast(int noutput_items, gr_vector_int& ninput_items_required);
     int general_work(int noutput_items,
                      gr_vector_int& ninput_items,
@@ -80,6 +79,8 @@ private:
     static const int interleaver_pattern[48];
 
     uint64_t d_pkt_num_from_long;
+
+    void check_msg(pmt::pmt_t msg);
 };
 
 } // namespace ieee802_11

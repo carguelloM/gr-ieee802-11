@@ -21,6 +21,7 @@
 #include <gnuradio/digital/constellation.h>
 #include <gnuradio/gr_complex.h>
 
+
 namespace gr {
 namespace ieee802_11 {
 namespace equalizer {
@@ -37,13 +38,16 @@ public:
     virtual double get_snr() = 0;
 
     static const gr_complex POLARITY[127];
-
+    std::array<gr_complex, 64> LONG_FREQ;  
     std::vector<gr_complex> get_csi();
-
+    void set_ltf(const gr_complex * newLTF);
 protected:
     static const gr_complex LONG[64];
-
     gr_complex d_H[64];
+private:
+   
+    
+    
 };
 
 } // namespace equalizer

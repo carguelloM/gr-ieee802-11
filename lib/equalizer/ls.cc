@@ -41,7 +41,15 @@ void ls::equalize(gr_complex* in,
             noise += std::pow(std::abs(d_H[i] - in[i]), 2);
             signal += std::pow(std::abs(d_H[i] + in[i]), 2);
             d_H[i] += in[i];
-            d_H[i] /= LONG[i] * gr_complex(2, 0);
+
+            // if(LONG.empty())
+            // {
+            //     throw std::runtime_error("LTF FREQUENCY VECTOR IS EMPTY :(");
+            // }
+            d_H[i] /= LONG_FREQ[i] * gr_complex(2, 0);
+            //std::cout << LONG_FREQ[i] << std::endl;
+            // THIS READ 100% NEEDS A MUTEX
+            //d_H[i] /= LONG_FREQ[i] * gr_complex(2, 0);
         }
 
         d_snr = 10 * std::log10(signal / noise / 2);
@@ -63,3 +71,4 @@ void ls::equalize(gr_complex* in,
 }
 
 double ls::get_snr() { return d_snr; }
+

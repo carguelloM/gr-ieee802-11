@@ -29,6 +29,8 @@ using gr::ieee802_11::QAM16_3_4;
 using gr::ieee802_11::QAM64_2_3;
 using gr::ieee802_11::QAM64_3_4;
 
+
+
 ofdm_param::ofdm_param(Encoding e)
 {
     encoding = e;
@@ -277,3 +279,5 @@ void generate_bits(const char* psdu, char* data_bits, frame_param& frame)
         }
     }
 }
+
+

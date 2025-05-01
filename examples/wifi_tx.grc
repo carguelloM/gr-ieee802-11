@@ -664,7 +664,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [408, 516.0]
+    coordinate: [424, 532.0]
     rotation: 0
     state: true
 - name: wifi_phy_hier_0

@@ -22,6 +22,7 @@
 #include <ieee802_11/mapper.h>
 #include <cinttypes>
 #include <iostream>
+#include <random>
 
 using gr::ieee802_11::Encoding;
 
@@ -40,6 +41,9 @@ using gr::ieee802_11::Encoding;
     } while (0);
 
 #pragma pack(push, 1)
+
+
+
 struct mac_header {
     // protocol version, type, subtype, to_ds, from_ds, ...
     uint16_t frame_control;
@@ -125,5 +129,7 @@ void interleave(const char* input,
 void split_symbols(const char* input, char* out, frame_param& frame, ofdm_param& ofdm);
 
 void generate_bits(const char* psdu, char* data_bits, frame_param& frame);
+
+
 
 #endif /* INCLUDED_IEEE802_11_UTILS_H */

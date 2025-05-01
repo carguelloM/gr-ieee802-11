@@ -35,6 +35,9 @@ inputs:
     dtype: complex
     vlen: 64
     multiplicity: '1'
+-   domain: message
+    id: ltf_fw
+    optional: true
 
 outputs:
 -   domain: stream

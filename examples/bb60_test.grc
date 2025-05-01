@@ -1142,6 +1142,7 @@ connections:
 - [ieee802_11_frame_equalizer_0, symbols, pdu_pdu_to_tagged_stream_0, pdus]
 - [ieee802_11_parse_mac_0, check, extended80211_checkPktNum_0, check]
 - [ieee802_11_sync_long_0, '0', blocks_stream_to_vector_0, '0']
+- [ieee802_11_sync_long_0, ltf_fw, ieee802_11_frame_equalizer_0, ltf_fw]
 - [ieee802_11_sync_short_0, '0', blocks_delay_0, '0']
 - [ieee802_11_sync_short_0, '0', ieee802_11_sync_long_0, '0']
 - [ieee802_11_sync_short_0, '1', extended80211_checkPktNum_0, '0']
