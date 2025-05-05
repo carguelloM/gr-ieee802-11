@@ -17,7 +17,6 @@
 #include "utils.h"
 #include <gnuradio/io_signature.h>
 #include <ieee802_11/sync_short.h>
-
 #include <iostream>
 
 using namespace gr::ieee802_11;
@@ -87,7 +86,7 @@ public:
                         d_plateau = 0;
                         insert_tag(nitems_written(0), d_freq_offset, nitems_read(0) + i);
                         dout << "SHORT Frame!" << std::endl;
-                        i = i-30;
+                        //i = i-30;
                         // double val = (d_freq_offset)*(20e6/(2*3.1416));
                         // d_logger->info("{}:{}", i, val);
                         break;

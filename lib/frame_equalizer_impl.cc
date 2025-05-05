@@ -56,9 +56,7 @@ frame_equalizer_impl::frame_equalizer_impl(
     message_port_register_out(pmt::mp("check"));
 
     message_port_register_in(pmt::mp("ltf_fw"));
-    // set_msg_handler(
-    //         pmt::mp("ltf_fw"),
-    //         boost::bind(&frame_equalizer_impl::check_msg, this, boost::placeholders::_1));
+  
     set_msg_handler(pmt::mp("ltf_fw"),
         [this](pmt::pmt_t msg){
             std::cout << "MESSAGE RX" << std::endl;
@@ -187,8 +185,8 @@ int frame_equalizer_impl::general_work(int noutput_items,
 
         double beta;
         if (d_current_symbol < 2) {
-            beta = arg(current_symbol[11] - current_symbol[25] + current_symbol[39] +
-                       current_symbol[53]);
+            beta = arg(current_symbol[11]*(d_equalizer->LONG_FREQ[11]) + current_symbol[25]* (d_equalizer->LONG_FREQ[25])
+                    + current_symbol[39] * (d_equalizer->LONG_FREQ[39]) + current_symbol[53]* (d_equalizer->LONG_FREQ[53]));
 
         } else {
             beta = arg((current_symbol[11] * p) + (current_symbol[39] * p) +
@@ -203,10 +201,10 @@ int frame_equalizer_impl::general_work(int noutput_items,
         er *= d_bw / (2 * M_PI * d_freq * 80);
 
         if (d_current_symbol < 2) {
-            d_prev_pilots[0] = current_symbol[11];
-            d_prev_pilots[1] = -current_symbol[25];
-            d_prev_pilots[2] = current_symbol[39];
-            d_prev_pilots[3] = current_symbol[53];
+            d_prev_pilots[0] = current_symbol[11] * d_equalizer->LONG_FREQ[11];
+            d_prev_pilots[1] = current_symbol[25] * d_equalizer->LONG_FREQ[25];
+            d_prev_pilots[2] = current_symbol[39] * d_equalizer->LONG_FREQ[39];
+            d_prev_pilots[3] = current_symbol[53] * d_equalizer->LONG_FREQ[53];
         } else {
             d_prev_pilots[0] = current_symbol[11] * p;
             d_prev_pilots[1] = current_symbol[25] * p;

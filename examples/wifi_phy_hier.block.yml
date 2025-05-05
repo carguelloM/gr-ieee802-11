@@ -33,6 +33,7 @@ inputs:
 -   label: samp_in
     dtype: complex
     vlen: 1
+    optional: true
 -   label: mac_in
     domain: message
     dtype: message
@@ -42,14 +43,6 @@ outputs:
 -   label: samp_out
     dtype: complex
     vlen: 1
--   label: carrier
-    domain: message
-    dtype: message
-    optional: true
--   label: mac_out
-    domain: message
-    dtype: message
-    optional: true
 
 templates:
     imports: 'from wifi_phy_hier import wifi_phy_hier  # grc-generated hier_block'

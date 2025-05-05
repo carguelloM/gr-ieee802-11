@@ -54,19 +54,16 @@ public:
           SYNC_LENGTH(sync_length), 
           d_pkt_num_from_short(0), 
           LONG_TIME(64),
-          LONG_FREQ(64)
+          LONG_FREQ(64),
+          gen_(112)
     {
         
         set_tag_propagation_policy(block::TPP_DONT);
         d_correlation = (gr_complex*)volk_malloc(sizeof(gr_complex) * 8192, volk_get_alignment());
         message_port_register_out(pmt::mp("sync_long_check"));
         message_port_register_out(pmt::mp("ltf_fw"));
-
-        init_rand_state(); // this gets the PRNG ready:
-
-     
-
-        set_ltf(LONG_FREQ, LONG_TIME);
+        
+       set_ltf(LONG_FREQ, LONG_TIME);
 
        d_fir.set_taps(LONG_TIME);
     }
@@ -80,10 +77,7 @@ public:
                      gr_vector_const_void_star& input_items,
                      gr_vector_void_star& output_items)
     {
-       // Send new LTS to equalizer
-        // pmt::pmt_t ltf_msg = pmt::init_c32vector(64,reinterpret_cast<const gr_complex*>(LONG_FREQ.data()));
-        // message_port_pub(pmt::mp("ltf_fw"), ltf_msg);
-        // std::cout << "MESSAGE SENT" << std::endl;
+
 
         const gr_complex* in = (const gr_complex*)input_items[0];
         const gr_complex* in_delayed = (const gr_complex*)input_items[1];
@@ -114,14 +108,6 @@ public:
                 }
                 d_freq_offset_short = pmt::to_double(d_tags.front().value);
                 d_pkt_num_from_short = pmt::to_uint64(d_tags.front().srcid);
-                // d_logger->info("Tags@@ {} ", d_tags.size());
-                // if(d_tags.size() > 1)
-                // {
-                 
-                //     uint64_t off2 = d_tags[1].offset;
-                //     d_logger->info("OFF 2ND TAG {} ", off2-nread);
-                // }
-                // d_logger->info("JUST GOT: {}", d_pkt_num_from_short);
             }
         }
 
@@ -176,7 +162,7 @@ public:
                                  pmt::from_double(d_freq_offset_short - d_freq_offset),
                                  pmt::from_uint64(d_pkt_num_from_short));
                 message_port_pub(pmt::mp("sync_long_check"), pmt::from_uint64(d_pkt_num_from_short));
-                //d_logger->info("Pkt {} in long", d_pkt_num_from_short);
+                
                 }
 
                 if (rel >= 0 && (rel < 128 || ((rel - 128) % 80) > 15)) {
@@ -216,6 +202,7 @@ public:
 
     bool start()
     {
+        std::cout << "MSG SENT" << std::endl;
         pmt::pmt_t ltf_msg = pmt::init_c32vector(
         64, reinterpret_cast<const gr_complex*>(LONG_FREQ.data()));
         message_port_pub(pmt::mp("ltf_fw"), ltf_msg);
@@ -269,14 +256,17 @@ public:
                     d_frame_start = min(get<1>(vec[i]), get<1>(vec[k]));
                     d_freq_offset = arg(first * conj(second)) / 64;
                     // nice match found, return immediately
+                    std::cout << d_frame_start << "IN 64" << std::endl;
                     return;
 
                 } else if (diff == 63) {
                     d_frame_start = min(get<1>(vec[i]), get<1>(vec[k]));
                     d_freq_offset = arg(first * conj(second)) / 63;
+                    //std::cout << d_freq_offset << "IN 63" << std::endl;
                 } else if (diff == 65) {
                     d_frame_start = min(get<1>(vec[i]), get<1>(vec[k]));
                     d_freq_offset = arg(first * conj(second)) / 65;
+                    //std::cout << d_freq_offset << "IN 65" << std::endl;
                 }
             }
         }
@@ -301,7 +291,7 @@ private:
     const int SYNC_LENGTH;
     
     std::mt19937                     gen_;
-    std::uniform_int_distribution<>  bit_;  
+    std::uniform_int_distribution<>  bit_{0,1};  
     
     std::vector<gr_complex> LONG_TIME;   // time-domain LTF
     std::vector<gr_complex> LONG_FREQ;   // freq-domain LTF
@@ -309,50 +299,49 @@ private:
     static const std::vector<gr_complex> LONG;
     static const gr_complex LONG2[];
 
-    void init_rand_state()
-    {
-    std::mt19937                     gen_{512};  // definition + seed
-    std::uniform_int_distribution<>  bit_{0,1};  // definition + range
-    }
+
 
     void set_ltf(std::vector<gr_complex>& freq_ltf, std::vector<gr_complex>& time_ltf)
     {
-        const std::size_t N = freq_ltf.size();          // 64 in your case
-        for (std::size_t i = 0; i < N; ++i)
+        const std::size_t NFFT = freq_ltf.size();          
+
+        for (std::size_t i = 0; i < NFFT; ++i)
         {
-            // Guard-band + DC carriers → zero
-            if (i < 6 || i == 32 || i > 58)
+            // // Guard-band + DC carriers → zero
+            // if((i == 11) || (i == 25) || (i == 32) || (i == 39) || (i == 53) ||
+            // (i < 6) || (i > 58))
+            // {
+            //     freq_ltf[i] = LONG2[i];
+            //     continue;
+            // }
+            if(i < 6 || i == 32 || i>58)
             {
-                freq_ltf[i] = gr_complex{0.0f, 0.0f};
+                freq_ltf[i] = gr_complex(0,0);
                 continue;
             }
-
             
-            //const int phase = bit_(gen_) ? 1 : -1;
-            //freq_ltf[i]     = gr_complex{static_cast<float>(phase), 0.0f};
-            freq_ltf[i]     = LONG2[i];
+            const int phase = bit_(gen_) ? 1 : -1;
+            freq_ltf[i]     = gr_complex{static_cast<float>(phase), 0.0f};
+          
         }
+   
 
-        std::vector<gr_complex> freq_nat(N);         
-        const std::size_t half = N / 2;              // N should be even so this should be an int
+        std::vector<gr_complex> freq_nat(NFFT);         
+        const std::size_t half = NFFT / 2;              // N should be even so this should be an int
         std::copy(freq_ltf.begin() + half, freq_ltf.end(), freq_nat.begin()); // N/2 to end (positive freqs first)
         std::copy(freq_ltf.begin(), freq_ltf.begin() + half, freq_nat.begin() + half); // 0 to N/2 after (negative freqs)
-        gr::fft::fft_complex_rev ifft(N, false);   
+        gr::fft::fft_complex_rev ifft(NFFT, false);   
         std::copy(freq_nat.begin(), freq_nat.end(), ifft.get_inbuf());
 
         ifft.execute();
 
-        for (std::size_t i = 0; i < N; ++i)
+        for (std::size_t i = 0; i < NFFT; ++i)
         {
-            // THIS WRITE 100% NEEDS A MUTEX
+           
             time_ltf[i] = ifft.get_outbuf()[i];
-            // time_ltf[i] = LONG[i];
+            
         }
 
-        // Send new LTS to equalizer
-        // pmt::pmt_t ltf_msg = pmt::init_c32vector(64,reinterpret_cast<const gr_complex*>(freq_ltf.data()));
-        // message_port_pub(pmt::mp("ltf_fw"), ltf_msg);
-        // std::cout << "MESSAGE SENT" << std::endl;
     }
 };
 
@@ -401,3 +390,14 @@ const gr_complex sync_long_impl::LONG2[] = { 0,  0,  0,  0,  0,  0,  1,  1,  -1,
     1,  -1, 1,  1,  1,  1,  0,  1,  -1, -1, 1,  1,  -1,
     1,  -1, 1,  -1, -1, -1, -1, -1, 1,  1,  -1, -1, 1,
     -1, 1,  -1, 1,  1,  1,  1,  0,  0,  0,  0,  0 };
+
+//     const gr_complex sync_long_impl::LONG2[] =    {  0,  0,  0,  0,  0,  0,
+//   -1,  1, -1, -1,  1,  1, -1, -1,
+//   -1,  1,  1,  1,  1, -1,  1, -1,
+//    1,  1,  1, -1, -1,  1,
+//    0,
+//   -1,  1, -1, -1,  1,  1, -1, -1,
+//   -1, -1, -1,  1, -1,  1, -1,  1,
+//    1, -1, -1,  1, -1,  1,  1,  1,
+//    1,  0,  0,  0,  0,  0 };
+    

@@ -53,7 +53,7 @@ std::vector<gr_complex> base::get_csi()
 void base::set_ltf(const gr_complex * newLTF)
 {
      std::copy_n(newLTF, 64, LONG_FREQ.begin());   // LTF is std::array<gr_complex,64>
-     for (int i = 0; i < 12; ++i)
-        std::cout << "(" << newLTF[i].real() << "," << newLTF[i].imag() << ") ";
-    std::cout << std::endl;
+    //  for (int i = 0; i < 64; ++i)
+    //     std::cout << "(" << newLTF[i].real() << "," << newLTF[i].imag() << ") ";
+    // std::cout << std::endl;
 }

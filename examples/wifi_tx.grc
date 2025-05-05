@@ -314,7 +314,7 @@ blocks:
     bus_structure: null
     coordinate: [704, 396.0]
     rotation: 180
-    state: true
+    state: enabled
 - name: foo_packet_pad2_0
   id: foo_packet_pad2
   parameters:
