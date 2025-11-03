@@ -277,7 +277,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [752, 232.0]
+    coordinate: [760, 192.0]
     rotation: 0
     state: true
 - name: blocks_complex_to_mag_2
@@ -324,7 +324,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [584, 272.0]
+    coordinate: [576, 272.0]
     rotation: 0
     state: enabled
 - name: blocks_delay_0
@@ -408,7 +408,7 @@ blocks:
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: /home/cesar/gr-ieee802-11/examples/rff_rand_data/dev0/day0/file12_1_0.00216000.dat
+    file: /home/cesar/gr-ieee802-11/examples/rff_data/dev0/file12_19_0.04104000.dat
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -420,7 +420,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [24, 260.0]
+    coordinate: [16, 276.0]
     rotation: 0
     state: true
 - name: blocks_file_source_0_0
@@ -430,7 +430,7 @@ blocks:
     alias: ''
     begin_tag: pmt.PMT_NIL
     comment: ''
-    file: /home/cesar/gr-ieee802-11/examples/rff_rand_data/dev0/day0/file12_32_0.06912000.dat
+    file: /home/cesar/gr-ieee802-11/examples/rff_data/dev0/file12_0_0.00000000.dat
     length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -442,7 +442,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [248, 100.0]
+    coordinate: [208, 116.0]
     rotation: 0
     state: true
 - name: blocks_moving_average_xx_0
@@ -536,7 +536,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [240, 344.0]
+    coordinate: [232, 352.0]
     rotation: 0
     state: true
 - name: blocks_stream_to_vector_0

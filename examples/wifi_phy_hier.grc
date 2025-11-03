@@ -435,9 +435,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1024, 212.0]
+    coordinate: [1024, 172.0]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: digital_ofdm_cyclic_prefixer_0_0
   id: digital_ofdm_cyclic_prefixer
   parameters:
@@ -536,9 +536,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1024, 220.0]
+    coordinate: [1024, 212.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: fft_vxx_0_0
   id: fft_vxx
   parameters:
