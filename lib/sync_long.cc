@@ -55,7 +55,7 @@ public:
           d_pkt_num_from_short(0), 
           LONG_TIME(64),
           LONG_FREQ(64),
-          gen_(112)
+          gen_(237)
     {
         
         set_tag_propagation_policy(block::TPP_DONT);
@@ -256,7 +256,7 @@ public:
                     d_frame_start = min(get<1>(vec[i]), get<1>(vec[k]));
                     d_freq_offset = arg(first * conj(second)) / 64;
                     // nice match found, return immediately
-                    std::cout << d_frame_start << "IN 64" << std::endl;
+                    //std::cout << d_frame_start << "IN 64" << std::endl;
                     return;
 
                 } else if (diff == 63) {
@@ -322,6 +322,7 @@ private:
             
             const int phase = bit_(gen_) ? 1 : -1;
             freq_ltf[i]     = gr_complex{static_cast<float>(phase), 0.0f};
+            freq_ltf[i]     = LONG2[i];
           
         }
    
@@ -330,15 +331,21 @@ private:
         const std::size_t half = NFFT / 2;              // N should be even so this should be an int
         std::copy(freq_ltf.begin() + half, freq_ltf.end(), freq_nat.begin()); // N/2 to end (positive freqs first)
         std::copy(freq_ltf.begin(), freq_ltf.begin() + half, freq_nat.begin() + half); // 0 to N/2 after (negative freqs)
-        gr::fft::fft_complex_rev ifft(NFFT, false);   
+        gr::fft::fft_complex_rev ifft(NFFT, false); // note this is not normalized (i.e., divided by 64)  
         std::copy(freq_nat.begin(), freq_nat.end(), ifft.get_inbuf());
-
         ifft.execute();
+	
+        for (std::size_t i = 0; i < NFFT; ++i)
+        {
+           
+            time_ltf[63- i] = std::conj(ifft.get_outbuf()[i] / std::sqrt(52.0f)); // Normalization
+            
+        }
 
         for (std::size_t i = 0; i < NFFT; ++i)
         {
            
-            time_ltf[i] = ifft.get_outbuf()[i];
+            std::cout << time_ltf[i] << std::endl;
             
         }
 
